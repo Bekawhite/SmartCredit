@@ -2,15 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
-from utils.helpers import (
-    generate_sample_borrowers,
-    generate_sample_loans,
-    format_currency,
-    calculate_risk_band,
-    get_risk_color,
-    generate_portfolio_summary,
-    create_sample_npl_trend
-)
 
 # Page configuration
 st.set_page_config(
@@ -20,10 +11,9 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Load custom CSS
-def load_css():
-    st.markdown("""
-    <style>
+# Custom CSS for enhanced styling
+st.markdown("""
+<style>
     .main-header {
         font-size: 2.5rem;
         color: #1f77b4;
@@ -48,33 +38,28 @@ def load_css():
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
-    .risk-critical { 
-        color: #dc3545; 
-        font-weight: bold;
-        background-color: #f8d7da;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
+    .nav-button {
+        width: 100%;
+        margin: 0.25rem 0;
+        padding: 0.75rem;
+        border: none;
+        border-radius: 8px;
+        background: #f8f9fa;
+        color: #2c3e50;
+        font-size: 1rem;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.3s ease;
     }
-    .risk-high { 
-        color: #fd7e14; 
-        font-weight: bold;
-        background-color: #ffeaa7;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
+    .nav-button:hover {
+        background: #1f77b4;
+        color: white;
+        transform: translateX(5px);
     }
-    .risk-medium { 
-        color: #ffc107; 
+    .nav-button.active {
+        background: #1f77b4;
+        color: white;
         font-weight: bold;
-        background-color: #fff3cd;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
-    }
-    .risk-low { 
-        color: #28a745; 
-        font-weight: bold;
-        background-color: #d4edda;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
     }
     .section-header {
         border-bottom: 3px solid #1f77b4;
@@ -82,76 +67,40 @@ def load_css():
         margin-bottom: 1.5rem;
         color: #2c3e50;
     }
-    .alert-badge {
-        background: linear-gradient(45deg, #FF6B6B, #FF8E53);
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        font-weight: bold;
-        display: inline-block;
-        margin: 0.25rem;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+</style>
+""", unsafe_allow_html=True)
 
-load_css()
+# Initialize session state for page navigation
+if 'current_page' not in st.session_state:
+    st.session_state.current_page = "Dashboard"
 
-# Initialize session state for sample data
-if 'sample_data_loaded' not in st.session_state:
-    st.session_state.sample_data_loaded = False
-    st.session_state.borrowers_df = generate_sample_borrowers(150)
-    st.session_state.loans_df = generate_sample_loans(300)
-    st.session_state.sample_data_loaded = True
-
-# Sample data functions using generated data
+# Sample data functions
 def get_sample_npl_data():
-    """Get NPL trend data"""
-    return create_sample_npl_trend()
+    return pd.DataFrame({
+        'month': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        'npl_ratio': [8.5, 8.2, 7.9, 7.7, 7.8, 8.1, 8.4, 8.6, 8.3, 8.0, 7.8, 7.6]
+    })
 
 def get_sample_risk_distribution():
-    """Get risk distribution from sample data"""
-    risk_counts = st.session_state.loans_df['risk_band'].value_counts()
     return pd.DataFrame({
-        'risk_band': risk_counts.index,
-        'count': risk_counts.values
+        'risk_band': ['Low', 'Medium', 'High', 'Critical'],
+        'count': [845, 287, 89, 26]
     })
 
 def get_sample_at_risk_loans():
-    """Get top at-risk loans from sample data"""
-    high_risk_loans = st.session_state.loans_df[
-        st.session_state.loans_df['risk_band'].isin(['High', 'Critical'])
-    ].nlargest(8, 'outstanding_balance')
-    
     return pd.DataFrame({
-        'Loan ID': high_risk_loans['loan_id'].values,
-        'Borrower': [f"Borrower {i}" for i in range(len(high_risk_loans))],
-        'Risk Score': np.random.randint(70, 96, len(high_risk_loans)),
-        'Outstanding (KES)': high_risk_loans['outstanding_balance'].values,
-        'Days Past Due': high_risk_loans['days_past_due'].values,
-        'Risk Band': high_risk_loans['risk_band'].values,
-        'Product Type': high_risk_loans['product_type'].values
+        'Loan ID': ['LN001', 'LN002', 'LN003', 'LN004', 'LN005'],
+        'Borrower': ['John Doe', 'Jane Smith', 'Mike Johnson', 'Sarah Wilson', 'David Brown'],
+        'Risk Score': [92, 87, 84, 79, 76],
+        'Outstanding (KES)': [450000, 280000, 150000, 320000, 185000],
+        'Days Past Due': [45, 32, 28, 15, 12],
+        'Risk Band': ['Critical', 'High', 'High', 'Medium', 'Medium'],
+        'Action Required': ['Immediate Restructure', 'Contact & Restructure', 'Monitor Closely', 'Watch List', 'Watch List']
     })
 
-def get_portfolio_metrics():
-    """Calculate comprehensive portfolio metrics"""
-    portfolio_stats = generate_portfolio_summary(st.session_state.loans_df)
-    
-    return {
-        "total_loans": portfolio_stats["total_loans"],
-        "total_outstanding": portfolio_stats["total_outstanding"],
-        "npl_ratio": portfolio_stats["npl_ratio"],
-        "npl_count": portfolio_stats["npl_count"],
-        "avg_loan_size": portfolio_stats["average_loan_size"],
-        "recovery_rate": 78.5,  # Sample data
-        "avg_risk_score": 62.3  # Sample data
-    }
-
-def main():
-    # Main header
+# Page functions
+def dashboard_page():
     st.markdown('<div class="main-header">🏦 KCB SmartCredit - Credit Risk Management Platform</div>', unsafe_allow_html=True)
-    
-    # Portfolio metrics
-    portfolio_metrics = get_portfolio_metrics()
     
     # Quick stats row
     st.markdown('<div class="section-header">📈 Portfolio Overview</div>', unsafe_allow_html=True)
@@ -162,28 +111,28 @@ def main():
         st.markdown('<div class="metric-card">', unsafe_allow_html=True)
         st.metric(
             label="NPL Ratio",
-            value=f"{portfolio_metrics['npl_ratio']:.1f}%",
+            value="8.2%",
             delta="-1.2%",
             delta_color="inverse"
         )
-        st.caption(f"📊 {portfolio_metrics['npl_count']} non-performing loans")
+        st.caption("📊 102 non-performing loans")
         st.markdown('</div>', unsafe_allow_html=True)
     
     with col2:
         st.markdown('<div class="metric-card">', unsafe_allow_html=True)
         st.metric(
             label="Total Portfolio",
-            value=format_currency(portfolio_metrics['total_outstanding']),
+            value="KES 245.7M",
             delta="+2.1%"
         )
-        st.caption(f"🏦 {portfolio_metrics['total_loans']} active loans")
+        st.caption("🏦 1,247 active loans")
         st.markdown('</div>', unsafe_allow_html=True)
     
     with col3:
         st.markdown('<div class="metric-card">', unsafe_allow_html=True)
         st.metric(
             label="Avg. Risk Score",
-            value=f"{portfolio_metrics['avg_risk_score']:.1f}",
+            value="62.3",
             delta="-4.1"
         )
         st.caption("📈 Improving trend")
@@ -193,26 +142,11 @@ def main():
         st.markdown('<div class="metric-card">', unsafe_allow_html=True)
         st.metric(
             label="Recovery Rate",
-            value=f"{portfolio_metrics['recovery_rate']:.1f}%",
+            value="78.5%",
             delta="+5.2%"
         )
         st.caption("🎯 Above target (75%)")
         st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Additional metrics row
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        st.metric("Avg. Loan Size", format_currency(portfolio_metrics['avg_loan_size']), "-3.2%")
-    
-    with col2:
-        st.metric("High Risk Loans", "47", "+3", delta_color="inverse")
-    
-    with col3:
-        st.metric("Restructured", "23", "+5")
-    
-    with col4:
-        st.metric("Collections", "KES 12.4M", "+1.2M")
     
     # Charts Section
     st.markdown('<div class="section-header">📊 Portfolio Analytics</div>', unsafe_allow_html=True)
@@ -220,147 +154,324 @@ def main():
     col1, col2 = st.columns(2)
     
     with col1:
-        # NPL Trend Chart
         st.write("**📈 NPL Ratio Trend (12 Months)**")
         npl_data = get_sample_npl_data()
         st.line_chart(npl_data, x='month', y='npl_ratio', height=350)
-        
-        # Additional NPL insights
-        with st.expander("📋 NPL Analysis Details"):
-            st.write(f"**Current NPL Ratio:** {npl_data['npl_ratio'].iloc[-1]:.1f}%")
-            st.write(f"**Trend:** {'Improving' if npl_data['npl_ratio'].iloc[-1] < npl_data['npl_ratio'].iloc[0] else 'Deteriorating'}")
-            st.write(f"**Volatility:** {npl_data['npl_ratio'].std():.2f}%")
     
     with col2:
-        # Risk Distribution
         st.write("**🎯 Risk Distribution Across Portfolio**")
         risk_data = get_sample_risk_distribution()
-        
-        # Create a bar chart
         st.bar_chart(risk_data.set_index('risk_band')['count'], height=350)
-        
-        # Risk distribution insights
-        with st.expander("📋 Risk Analysis Details"):
-            total_loans = risk_data['count'].sum()
-            for _, row in risk_data.iterrows():
-                percentage = (row['count'] / total_loans) * 100
-                risk_class = row['risk_band'].lower()
-                st.write(f"**{row['risk_band']} Risk:** {row['count']} loans ({percentage:.1f}%)")
     
-    # At-Risk Loans Section
+    # At-Risk Loans Table
     st.markdown('<div class="section-header">🚨 High Priority Actions</div>', unsafe_allow_html=True)
     
-    col1, col2 = st.columns([2, 1])
+    at_risk_loans = get_sample_at_risk_loans()
+    st.dataframe(at_risk_loans, use_container_width=True)
     
-    with col1:
-        st.subheader("Top At-Risk Loans Requiring Attention")
-        at_risk_loans = get_sample_at_risk_loans()
-        
-        # Style the risk bands in the dataframe
-        def style_risk_band(val):
-            color_class = f"risk-{val.lower()}"
-            return f'<span class="{color_class}">{val}</span>'
-        
-        styled_df = at_risk_loans.copy()
-        styled_df['Outstanding (KES)'] = styled_df['Outstanding (KES)'].apply(
-            lambda x: format_currency(x)
-        )
-        
-        # Convert to HTML for styling
-        styled_html = styled_df.to_html(escape=False, index=False, classes='table table-striped')
-        st.markdown(styled_html, unsafe_allow_html=True)
-    
-    with col2:
-        st.subheader("🔄 Quick Actions")
-        
-        action_col1, action_col2 = st.columns(2)
-        
-        with action_col1:
-            if st.button("📋 Generate Report", use_container_width=True):
-                st.success("Portfolio report generated!")
-            
-            if st.button("🔍 Risk Analysis", use_container_width=True):
-                st.info("Running comprehensive risk analysis...")
-        
-        with action_col2:
-            if st.button("🔄 Refresh Data", use_container_width=True):
-                st.rerun()
-            
-            if st.button("📧 Send Alerts", use_container_width=True):
-                st.info("Alerts sent to relationship managers")
-        
-        # Priority alerts
-        st.subheader("📢 Priority Alerts")
-        st.markdown('<div class="alert-badge">🚨 3 Critical Risk Loans</div>', unsafe_allow_html=True)
-        st.markdown('<div class="alert-badge">⚠️ 12 Restructuring Pending</div>', unsafe_allow_html=True)
-        st.markdown('<div class="alert-badge">📊 Model Retraining Due</div>', unsafe_allow_html=True)
-    
-    # Recent Activity & System Status
-    st.markdown('<div class="section-header">🕒 Recent Activity & System Status</div>', unsafe_allow_html=True)
+    # Recent Activity
+    st.markdown('<div class="section-header">🕒 Recent Activity</div>', unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        st.info("""
-        **📈 Last Risk Model Update**  
-        🕒 2 hours ago  
-        ✅ Accuracy: 87.3%  
-        🔄 Next retraining: 3 days
-        """)
+        st.info("**📈 Last Risk Model Update**\n\n2 hours ago")
     
     with col2:
-        st.success("""
-        **🔄 Successful Restructures**  
-        📊 12 completed this week  
-        💰 Total value: KES 4.2M  
-        🎯 Success rate: 82%
-        """)
+        st.success("**🔄 Successful Restructures**\n\n12 this week")
     
     with col3:
-        st.warning("""
-        **⏳ Pending Approvals**  
-        📝 8 restructuring requests  
-        🏦 3 new loan applications  
-        ⚠️ 2 credit limit increases
-        """)
-    
-    # System Health Status
-    st.markdown("---")
-    health_col1, health_col2, health_col3, health_col4 = st.columns(4)
-    
-    with health_col1:
-        st.success("**API Status**\n\n✅ Operational")
-    
-    with health_col2:
-        st.info("**Data Freshness**\n\n🕒 15 minutes ago")
-    
-    with health_col3:
-        st.warning("**System Load**\n\n📊 45% capacity")
-    
-    with health_col4:
-        st.success("**Uptime**\n\n⏱️ 99.9% this month")
-    
-    # Footer
-    st.markdown("---")
-    footer_col1, footer_col2, footer_col3 = st.columns(3)
-    with footer_col1:
-        st.caption(f"🕒 Last Updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    with footer_col2:
-        st.caption("🏦 KCB SmartCredit v2.1.0")
-    with footer_col3:
-        st.caption("🔐 Secure Banking Platform")
+        st.warning("**⏳ Pending Approvals**\n\n8 requests")
 
-# Refresh data function
-def refresh_sample_data():
-    """Refresh sample data in session state"""
-    st.session_state.borrowers_df = generate_sample_borrowers(150)
-    st.session_state.loans_df = generate_sample_loans(300)
-    st.success("Sample data refreshed!")
+def risk_analysis_page():
+    st.title("🔍 Risk Analysis")
+    st.markdown("Deep dive into borrower risk profiles and portfolio risk metrics")
+    
+    col1, col2 = st.columns([1, 2])
+    
+    with col1:
+        st.subheader("Individual Risk Assessment")
+        
+        borrower_id = st.selectbox(
+            "Select Borrower",
+            ["BORR001 - John Doe", "BORR002 - Jane Smith", "BORR003 - Mike Johnson"]
+        )
+        
+        monthly_income = st.number_input("Monthly Income (KES)", value=150000, step=10000)
+        existing_debt = st.number_input("Existing Debt (KES)", value=450000, step=10000)
+        loan_amount = st.number_input("Loan Amount Requested (KES)", value=200000, step=10000)
+        employment_type = st.selectbox("Employment Type", ["Salaried", "Business Owner", "Self-Employed"])
+        credit_history = st.slider("Credit History (Months)", 0, 120, 36)
+        
+        if st.button("Assess Risk", type="primary"):
+            st.success("Risk assessment completed!")
+            
+            # Calculate risk score
+            debt_to_income = (existing_debt + loan_amount) / (monthly_income * 12) * 100
+            risk_score = min(100, max(20, debt_to_income + (120 - credit_history) * 0.5))
+            
+            st.metric("Risk Score", f"{risk_score:.1f}/100")
+            
+            # Risk factors
+            st.subheader("Key Risk Factors")
+            risk_factors = []
+            
+            if debt_to_income > 50:
+                risk_factors.append(f"High debt-to-income ratio ({debt_to_income:.1f}%)")
+            if credit_history < 24:
+                risk_factors.append("Limited credit history")
+            if employment_type == "Self-Employed":
+                risk_factors.append("Variable income source")
+                
+            for factor in risk_factors:
+                st.write(f"• {factor}")
+    
+    with col2:
+        st.subheader("Portfolio Risk Overview")
+        
+        # Risk distribution
+        risk_data = get_sample_risk_distribution()
+        st.bar_chart(risk_data.set_index('risk_band')['count'], height=300)
+        
+        # Risk metrics
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Overall Risk Score", "64.2", "+2.1")
+        with col2:
+            st.metric("High Risk Loans", "89", "+8", delta_color="inverse")
+        with col3:
+            st.metric("Risk Concentration", "28%", "-3%")
+
+def restructuring_page():
+    st.title("🔄 Loan Restructuring")
+    st.markdown("AI-powered restructuring proposals and affordability analysis")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.subheader("Restructuring Proposal Generator")
+        
+        loan_id = st.selectbox(
+            "Select Loan for Restructuring",
+            ["LN001 - John Doe (45 DPD)", "LN002 - Jane Smith (32 DPD)", "LN045 - Mike Johnson (28 DPD)"]
+        )
+        
+        current_payment = st.number_input("Current Monthly Payment (KES)", value=45000, step=1000)
+        borrower_income = st.number_input("Borrower Monthly Income (KES)", value=120000, step=5000)
+        monthly_expenses = st.number_input("Total Monthly Expenses (KES)", value=95000, step=5000)
+        term_extension = st.slider("Proposed Term Extension (Months)", 0, 24, 12)
+        interest_reduction = st.slider("Interest Rate Reduction (%)", 0.0, 5.0, 1.5, step=0.1)
+        
+        if st.button("Generate Restructuring Proposal", type="primary"):
+            st.success("AI restructuring proposal generated!")
+            
+            # Calculate proposal
+            proposed_payment = current_payment * 0.62
+            payment_reduction = ((current_payment - proposed_payment) / current_payment) * 100
+            
+            proposal = {
+                "Current Payment": f"KES {current_payment:,}",
+                "Proposed Payment": f"KES {proposed_payment:,.0f}",
+                "Payment Reduction": f"{payment_reduction:.1f}%",
+                "Term Extension": f"{term_extension} months",
+                "Interest Rate Reduction": f"{interest_reduction:.1f}%",
+                "Expected Recovery Rate": "82%"
+            }
+            
+            for key, value in proposal.items():
+                col1, col2 = st.columns([2, 1])
+                col1.write(f"**{key}:**")
+                col2.write(value)
+    
+    with col2:
+        st.subheader("Affordability Analysis")
+        
+        # Cash flow chart
+        categories = ['Income', 'Current Payment', 'Proposed Payment', 'Living Expenses', 'Other Debt']
+        amounts = [borrower_income, current_payment, current_payment * 0.62, monthly_expenses - 20000, 20000]
+        
+        cashflow_df = pd.DataFrame({
+            'Category': categories,
+            'Amount': amounts
+        })
+        
+        st.bar_chart(cashflow_df.set_index('Category')['Amount'], height=300)
+        
+        # Financial ratios
+        st.subheader("Financial Health Indicators")
+        
+        ratio_col1, ratio_col2 = st.columns(2)
+        with ratio_col1:
+            debt_ratio = (current_payment + 20000) / borrower_income * 100
+            st.metric("Debt-to-Income Ratio", f"{debt_ratio:.1f}%")
+        with ratio_col2:
+            proposed_ratio = (current_payment * 0.62 + 20000) / borrower_income * 100
+            st.metric("Proposed Debt Ratio", f"{proposed_ratio:.1f}%")
+
+def portfolio_page():
+    st.title("📊 Portfolio Overview")
+    st.markdown("Comprehensive analysis of your loan portfolio performance")
+    
+    # Portfolio metrics
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric("Total Outstanding", "KES 245.7M", "2.1%")
+    
+    with col2:
+        st.metric("NPL Ratio", "8.2%", "-1.2%", delta_color="inverse")
+    
+    with col3:
+        st.metric("Avg. Days Past Due", "14.2", "+0.8", delta_color="inverse")
+    
+    with col4:
+        st.metric("Recovery Rate", "78.5%", "+5.2%")
+    
+    # Portfolio composition
+    st.subheader("Portfolio Composition")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.write("**By Sector**")
+        sector_data = pd.DataFrame({
+            'Sector': ['Agriculture', 'Manufacturing', 'Services', 'Retail', 'Tourism', 'Other'],
+            'Value (KES M)': [45.0, 68.0, 55.7, 34.2, 23.8, 19.0]
+        })
+        st.bar_chart(sector_data.set_index('Sector')['Value (KES M)'])
+    
+    with col2:
+        st.write("**By Product Type**")
+        product_data = pd.DataFrame({
+            'Product': ['Personal Loans', 'Business Loans', 'Mortgages', 'Auto Loans', 'SME Credit'],
+            'NPL Ratio': [6.2, 9.8, 3.4, 5.1, 11.2]
+        })
+        st.bar_chart(product_data.set_index('Product')['NPL Ratio'])
+    
+    # Performance metrics
+    st.subheader("Performance Metrics")
+    
+    # NPL trend
+    npl_data = get_sample_npl_data()
+    st.line_chart(npl_data, x='month', y='npl_ratio', height=300)
+    
+    # Portfolio statistics
+    st.subheader("Portfolio Statistics")
+    
+    portfolio_stats = pd.DataFrame({
+        'Metric': ['Total Loans', 'Average Loan Size', 'Interest Rate', 'Portfolio Duration'],
+        'Value': ['1,247', 'KES 197,000', '14.8%', '2.8 years'],
+        'Change': ['+18', '-3.2%', '+0.2%', '+0.1 years']
+    })
+    
+    st.dataframe(portfolio_stats, use_container_width=True, hide_index=True)
+
+def admin_page():
+    st.title("⚙️ Admin Panel")
+    st.markdown("System configuration and management")
+    
+    tab1, tab2, tab3 = st.tabs(["Model Management", "System Monitoring", "Configuration"])
+    
+    with tab1:
+        st.subheader("ML Model Management")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.selectbox("Active Risk Model Version", ["v2.1.0 (Production)", "v2.0.0", "v1.5.0"])
+            st.selectbox("NPL Forecast Model", ["v1.2.0 (Production)", "v1.1.0"])
+            st.number_input("Retraining Frequency (Days)", value=30, min_value=1, max_value=90)
+            
+            if st.button("Schedule Model Retraining", type="primary"):
+                st.success("Model retraining scheduled!")
+        
+        with col2:
+            st.subheader("Model Performance")
+            
+            performance_data = pd.DataFrame({
+                'Model': ['Risk Assessment', 'NPL Forecast', 'Restructuring'],
+                'Accuracy': [87.3, 92.1, 78.5],
+                'Last Updated': ['2 hours ago', '1 day ago', '3 days ago']
+            })
+            
+            st.dataframe(performance_data, use_container_width=True, hide_index=True)
+    
+    with tab2:
+        st.subheader("System Health Monitoring")
+        
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            st.metric("API Response Time", "142ms", "-8ms")
+        
+        with col2:
+            st.metric("Database Connections", "24/50", "+2")
+        
+        with col3:
+            st.metric("Active Users", "17", "+3")
+        
+        with col4:
+            st.metric("Error Rate", "0.2%", "-0.1%")
+    
+    with tab3:
+        st.subheader("System Configuration")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.number_input("Risk Score Threshold - Critical", value=80)
+            st.number_input("Risk Score Threshold - High", value=60)
+            st.number_input("NPL Alert Threshold (%)", value=10.0)
+        
+        with col2:
+            st.number_input("Max Restructuring Term (Months)", value=60)
+            st.number_input("Auto-approval Limit (KES)", value=50000)
+        
+        if st.button("Save Configuration", type="primary"):
+            st.success("Configuration saved successfully!")
+
+# Navigation sidebar
+def navigation_sidebar():
+    st.sidebar.image("https://via.placeholder.com/150x50/1f77b4/ffffff?text=KCB", width=150)
+    st.sidebar.title("Navigation")
+    
+    # Navigation buttons
+    pages = {
+        "🏠 Dashboard": dashboard_page,
+        "🔍 Risk Analysis": risk_analysis_page,
+        "🔄 Restructuring": restructuring_page,
+        "📊 Portfolio Overview": portfolio_page,
+        "⚙️ Admin": admin_page
+    }
+    
+    for page_name, page_function in pages.items():
+        is_active = st.session_state.current_page == page_name
+        button_class = "nav-button active" if is_active else "nav-button"
+        
+        if st.sidebar.button(page_name, key=page_name, use_container_width=True):
+            st.session_state.current_page = page_name
+            st.rerun()
+    
+    st.sidebar.markdown("---")
+    st.sidebar.info("**System Status**\n\n✅ All systems operational\n🕒 Last updated: 2 min ago")
+
+# Main app function
+def main():
+    # Render navigation
+    navigation_sidebar()
+    
+    # Render current page
+    pages = {
+        "🏠 Dashboard": dashboard_page,
+        "🔍 Risk Analysis": risk_analysis_page,
+        "🔄 Restructuring": restructuring_page,
+        "📊 Portfolio Overview": portfolio_page,
+        "⚙️ Admin": admin_page
+    }
+    
+    # Call the current page function
+    current_page_function = pages.get(st.session_state.current_page, dashboard_page)
+    current_page_function()
 
 if __name__ == "__main__":
     main()
-    
-    # Debug button (hidden in production)
-    with st.sidebar:
-        if st.button("🔄 Debug: Refresh Sample Data", key="debug_refresh"):
-            refresh_sample_data()
