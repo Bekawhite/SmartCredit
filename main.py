@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
+import random
 
 # Page configuration
 st.set_page_config(
@@ -67,6 +68,46 @@ st.markdown("""
         margin-bottom: 1.5rem;
         color: #2c3e50;
     }
+    /* Blockchain specific styles */
+    .blockchain-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin: 0.5rem 0;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .token-card {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 12px;
+        border-left: 5px solid #28a745;
+        margin: 0.5rem 0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .compliance-card {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 12px;
+        border-left: 5px solid #1f77b4;
+        margin: 0.5rem 0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .warning-critical { 
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        padding: 1rem;
+        border-radius: 10px;
+        margin: 0.5rem 0;
+        border-left: 5px solid #ff6b6b;
+    }
+    .engagement-metric {
+        text-align: center;
+        padding: 1rem;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -98,7 +139,8 @@ def get_sample_at_risk_loans():
         'Action Required': ['Immediate Restructure', 'Contact & Restructure', 'Monitor Closely', 'Watch List', 'Watch List']
     })
 
-# Page functions
+# ========== PAGE FUNCTIONS ==========
+
 def dashboard_page():
     st.markdown('<div class="main-header">🏦 KCB SmartCredit - Credit Risk Management Platform</div>', unsafe_allow_html=True)
     
@@ -430,17 +472,315 @@ def admin_page():
         if st.button("Save Configuration", type="primary"):
             st.success("Configuration saved successfully!")
 
+# ========== NEW PAGES 6-11 ==========
+
+def banking_integration_page():
+    st.title("🌐 Real-Time Banking Integration")
+    st.markdown("Live connections to KCB core banking systems and external data sources")
+    
+    # System Status Overview
+    st.subheader("🖥️ System Integration Status")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.metric("Core Banking (T24)", "Connected", "Live")
+        st.caption("Last sync: 2 min ago")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.metric("M-Pesa Gateway", "Connected", "2,347 txns")
+        st.caption("Real-time monitoring")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.metric("Credit Bureau", "Syncing", "85%")
+        st.caption("Refresh in progress")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with col4:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.metric("Transaction API", "Connected", "Active")
+        st.caption("All channels live")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Real-time metrics
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("API Response Time", "142ms", "-8ms")
+        st.metric("Data Freshness", "15 min", "-2 min")
+    with col2:
+        st.metric("Sync Success Rate", "99.2%", "+0.5%")
+        st.metric("Error Rate", "0.12%", "-0.03%")
+    
+    st.info("🌐 **Integration Status**: All core systems operating normally with real-time data synchronization")
+
+def early_warning_page():
+    st.title("🚨 AI-Powered Early Warning System")
+    st.markdown("Predictive analytics to identify potential defaults 3-6 months in advance")
+    
+    # Early Warning Dashboard
+    st.subheader("📊 Early Warning Dashboard")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.metric("Active Warnings", "47", "+8", delta_color="inverse")
+        st.caption("📈 12 new this week")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.metric("Model Accuracy", "89.3%", "+2.1%")
+        st.caption("🎯 6-month prediction")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.metric("Precision Rate", "85.7%", "+3.2%")
+        st.caption("✅ True positive rate")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with col4:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.metric("Avg Lead Time", "4.2 months", "+0.8 months")
+        st.caption("⏰ Early detection")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Critical Alerts
+    st.subheader("🔴 Critical Priority Alerts")
+    
+    # Sample critical alerts
+    critical_alerts = [
+        {"customer": "John Mwangi (CUST1001)", "risk": 92, "timing": "3 months", "factors": "Payment deterioration, Cash flow volatility"},
+        {"customer": "Sarah Kimani (CUST1002)", "risk": 88, "timing": "4 months", "factors": "High debt utilization, Industry stress"},
+        {"customer": "Mike Ochieng (CUST1003)", "risk": 85, "timing": "2 months", "factors": "Transaction behavior changes, Economic impact"}
+    ]
+    
+    for alert in critical_alerts:
+        st.markdown(f'''
+        <div class="warning-critical">
+            <h4>{alert['customer']}</h4>
+            <p><strong>Default Probability:</strong> {alert['risk']}% | <strong>Expected in:</strong> {alert['timing']}</p>
+            <p><strong>Risk Factors:</strong> {alert['factors']}</p>
+        </div>
+        ''', unsafe_allow_html=True)
+
+def regulatory_compliance_page():
+    st.title("📋 Automated Regulatory Compliance & Reporting")
+    st.markdown("CBK compliance automation, IFRS 9 provisioning, and regulatory reporting")
+    
+    # Compliance Status Overview
+    st.subheader("🏛️ Regulatory Compliance Dashboard")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.markdown('<div class="compliance-card">', unsafe_allow_html=True)
+        st.metric("CBK Compliance", "98.7%", "+2.1%")
+        st.caption("✅ All major requirements")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown('<div class="compliance-card">', unsafe_allow_html=True)
+        st.metric("IFRS 9 Status", "100%", "Compliant")
+        st.caption("📊 Provisions: KES 8.2M")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown('<div class="compliance-card">', unsafe_allow_html=True)
+        st.metric("Basel III Ratio", "14.8%", "-0.2%")
+        st.caption("🎯 Minimum: 10.5%")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with col4:
+        st.markdown('<div class="compliance-card">', unsafe_allow_html=True)
+        st.metric("Reports Due", "2", "Next: 7 days")
+        st.caption("📅 Quarterly returns")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Compliance Metrics
+    st.subheader("📊 Compliance Metrics")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("Capital Adequacy", "14.8%", "+0.2%")
+        st.metric("Liquidity Coverage", "125%", "+5%")
+    with col2:
+        st.metric("NPL Coverage", "78.5%", "+3.2%")
+        st.metric("Provisioning", "102%", "+2.5%")
+    
+    st.success("✅ All regulatory requirements currently met with automated reporting enabled")
+
+def customer_engagement_page():
+    st.title("📱 Integrated Customer Engagement Platform")
+    st.markdown("Multi-channel communication, personalized offers, and customer self-service")
+    
+    # Engagement Metrics Overview
+    st.subheader("📊 Customer Engagement Dashboard")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.markdown('<div class="engagement-metric">', unsafe_allow_html=True)
+        st.metric("Active Conversations", "247", "+18")
+        st.caption("💬 Across all channels")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown('<div class="engagement-metric">', unsafe_allow_html=True)
+        st.metric("Response Rate", "94.2%", "+3.1%")
+        st.caption("⚡ Avg: 12 minutes")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown('<div class="engagement-metric">', unsafe_allow_html=True)
+        st.metric("Offer Acceptance", "67.8%", "+8.5%")
+        st.caption("✅ Restructuring success")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with col4:
+        st.markdown('<div class="engagement-metric">', unsafe_allow_html=True)
+        st.metric("Self-Service Usage", "42%", "+15%")
+        st.caption("📱 Digital adoption")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Channel Performance
+    st.subheader("📞 Channel Performance")
+    
+    channels = [
+        {"channel": "SMS", "volume": "2,347", "success": "98.7%", "cost": "KES 8.50"},
+        {"channel": "WhatsApp", "volume": "156", "success": "96.2%", "cost": "KES 12.00"},
+        {"channel": "Email", "volume": "8,452", "success": "45.8%", "cost": "KES 5.20"},
+        {"channel": "USSD", "volume": "892", "success": "94.5%", "cost": "KES 15.00"}
+    ]
+    
+    for channel in channels:
+        with st.expander(f"📱 {channel['channel']} Channel"):
+            col1, col2, col3 = st.columns(3)
+            col1.metric("Volume", channel['volume'])
+            col2.metric("Success Rate", channel['success'])
+            col3.metric("Cost/Engagement", channel['cost'])
+
+def portfolio_optimization_page():
+    st.title("📈 Advanced Portfolio Optimization & Scenario Analysis")
+    st.markdown("Monte Carlo simulations, what-if analysis, and optimal capital allocation")
+    
+    # Portfolio Optimization Overview
+    st.subheader("🎯 Portfolio Optimization Dashboard")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.metric("Optimal ROA", "3.8%", "+1.0%")
+        st.caption("🎯 Potential improvement")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.metric("Risk-Adjusted Return", "2.4%", "+0.6%")
+        st.caption("⚡ Sharpe ratio improvement")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.metric("Capital Efficiency", "+18.5%", "+5.2%")
+        st.caption("💰 Better allocation")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with col4:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.metric("NPL Reduction Potential", "1.8%", "-1.8%")
+        st.caption("📉 Risk optimization")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Optimization Scenarios
+    st.subheader("🔍 Optimization Scenarios")
+    
+    scenarios = [
+        {"scenario": "Current Portfolio", "roa": "2.8%", "risk": "6.4/10", "npl": "8.2%"},
+        {"scenario": "Optimized Allocation", "roa": "3.8%", "risk": "5.2/10", "npl": "6.4%"},
+        {"scenario": "Aggressive Growth", "roa": "4.2%", "risk": "7.8/10", "npl": "9.1%"},
+        {"scenario": "Conservative Approach", "roa": "2.5%", "risk": "4.1/10", "npl": "5.2%"}
+    ]
+    
+    for scenario in scenarios:
+        with st.expander(f"📊 {scenario['scenario']}"):
+            col1, col2, col3 = st.columns(3)
+            col1.metric("ROA", scenario['roa'])
+            col2.metric("Risk Score", scenario['risk'])
+            col3.metric("NPL Ratio", scenario['npl'])
+
+def blockchain_securitization_page():
+    st.title("⛓️ Blockchain-Based Loan Securitization")
+    st.markdown("Tokenize performing loans into tradeable securities on blockchain")
+    
+    # Blockchain Overview
+    st.subheader("🔗 Blockchain Securitization Dashboard")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.metric("Total Tokenized", "KES 185.2M", "+24.5M")
+        st.caption("📈 Across 3 tranches")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.metric("Active Investors", "347", "+28")
+        st.caption("👥 Institutional & retail")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.metric("Blockchain Transactions", "2,458", "+156")
+        st.caption("⛓️ Immutable records")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with col4:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.metric("Average Yield", "12.8%", "+1.2%")
+        st.caption("💰 Investor returns")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Tokenization Details
+    st.subheader("🎫 Security Token Details")
+    
+    tokens = [
+        {"tranche": "Senior Tranche", "amount": "KES 111.1M", "yield": "8.5%", "rating": "AAA"},
+        {"tranche": "Mezzanine Tranche", "amount": "KES 46.3M", "yield": "12.5%", "rating": "BBB"},
+        {"tranche": "Equity Tranche", "amount": "KES 27.8M", "yield": "18.0%", "rating": "BB"}
+    ]
+    
+    for token in tokens:
+        st.markdown('<div class="token-card">', unsafe_allow_html=True)
+        st.write(f"**{token['tranche']}**")
+        st.write(f"Amount: {token['amount']} | Yield: {token['yield']} | Rating: {token['rating']}")
+        st.markdown('</div>', unsafe_allow_html=True)
+
 # Navigation sidebar
 def navigation_sidebar():
     st.sidebar.image("https://via.placeholder.com/150x50/1f77b4/ffffff?text=KCB", width=150)
     st.sidebar.title("Navigation")
     
-    # Navigation buttons
+    # Navigation buttons - All pages including new ones
     pages = {
         "🏠 Dashboard": dashboard_page,
         "🔍 Risk Analysis": risk_analysis_page,
         "🔄 Restructuring": restructuring_page,
         "📊 Portfolio Overview": portfolio_page,
+        "🌐 Banking Integration": banking_integration_page,
+        "🚨 Early Warning System": early_warning_page,
+        "📋 Regulatory Compliance": regulatory_compliance_page,
+        "📱 Customer Engagement": customer_engagement_page,
+        "📈 Portfolio Optimization": portfolio_optimization_page,
+        "⛓️ Blockchain Securitization": blockchain_securitization_page,
         "⚙️ Admin": admin_page
     }
     
@@ -460,12 +800,18 @@ def main():
     # Render navigation
     navigation_sidebar()
     
-    # Render current page
+    # Render current page - All pages including new ones
     pages = {
         "🏠 Dashboard": dashboard_page,
         "🔍 Risk Analysis": risk_analysis_page,
         "🔄 Restructuring": restructuring_page,
         "📊 Portfolio Overview": portfolio_page,
+        "🌐 Banking Integration": banking_integration_page,
+        "🚨 Early Warning System": early_warning_page,
+        "📋 Regulatory Compliance": regulatory_compliance_page,
+        "📱 Customer Engagement": customer_engagement_page,
+        "📈 Portfolio Optimization": portfolio_optimization_page,
+        "⛓️ Blockchain Securitization": blockchain_securitization_page,
         "⚙️ Admin": admin_page
     }
     
