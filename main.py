@@ -1,8 +1,5 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
-from datetime import datetime, timedelta
 import numpy as np
 
 # Page configuration
@@ -39,9 +36,6 @@ def load_css():
     .risk-high { color: #fd7e14; font-weight: bold; }
     .risk-medium { color: #ffc107; font-weight: bold; }
     .risk-low { color: #28a745; font-weight: bold; }
-    .sidebar .sidebar-content {
-        background-color: #f8f9fa;
-    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -50,15 +44,14 @@ load_css()
 # Sample data functions
 def get_sample_npl_data():
     return pd.DataFrame({
-        'month': pd.date_range('2023-01-01', periods=12, freq='M'),
+        'month': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
         'npl_ratio': [8.5, 8.2, 7.9, 7.7, 7.8, 8.1, 8.4, 8.6, 8.3, 8.0, 7.8, 7.6]
     })
 
 def get_sample_risk_distribution():
     return pd.DataFrame({
         'risk_band': ['Low', 'Medium', 'High', 'Critical'],
-        'count': [845, 287, 89, 26],
-        'color': ['#28a745', '#ffc107', '#fd7e14', '#dc3545']
+        'count': [845, 287, 89, 26]
     })
 
 def get_sample_at_risk_loans():
@@ -125,49 +118,22 @@ def main():
     col1, col2 = st.columns(2)
     
     with col1:
-        # NPL Trend Chart
+        # NPL Trend Chart using native Streamlit
+        st.write("📈 NPL Ratio Trend (12 Months)")
         npl_data = get_sample_npl_data()
-        fig = px.line(npl_data, x='month', y='npl_ratio', 
-                     title="📈 NPL Ratio Trend (12 Months)",
-                     labels={'npl_ratio': 'NPL Ratio %', 'month': 'Month'})
-        fig.update_traces(line=dict(color='#1f77b4', width=3))
-        fig.update_layout(height=400)
-        st.plotly_chart(fig, use_container_width=True)
+        st.line_chart(npl_data, x='month', y='npl_ratio')
     
     with col2:
-        # Risk Distribution
+        # Risk Distribution using native Streamlit
+        st.write("🎯 Risk Distribution Across Portfolio")
         risk_data = get_sample_risk_distribution()
-        fig = px.pie(risk_data, values='count', names='risk_band',
-                    title="🎯 Risk Distribution Across Portfolio",
-                    color='risk_band',
-                    color_discrete_map={
-                        'Low': '#28a745',
-                        'Medium': '#ffc107', 
-                        'High': '#fd7e14',
-                        'Critical': '#dc3545'
-                    })
-        fig.update_layout(height=400)
-        st.plotly_chart(fig, use_container_width=True)
+        st.bar_chart(risk_data, x='risk_band', y='count')
     
     # At-Risk Loans Table
     st.subheader("🚨 Top At-Risk Loans Requiring Attention")
     
     at_risk_loans = get_sample_at_risk_loans()
-    
-    # Style the dataframe
-    def style_risk_band(val):
-        color_map = {
-            'Critical': 'risk-critical',
-            'High': 'risk-high',
-            'Medium': 'risk-medium',
-            'Low': 'risk-low'
-        }
-        return f'<span class="{color_map.get(val, "")}">{val}</span>'
-    
-    styled_df = at_risk_loans.copy()
-    styled_df['Risk Band'] = styled_df['Risk Band'].apply(style_risk_band)
-    
-    st.markdown(styled_df.to_html(escape=False, index=False), unsafe_allow_html=True)
+    st.dataframe(at_risk_loans, use_container_width=True)
     
     # Recent Activity
     st.subheader("🕒 Recent System Activity")
